@@ -1,0 +1,18 @@
+type User {
+    id: ID! @unique
+    name: String!
+    email: String! @unique
+    password: String!
+    createdAt: DateTime!
+    expenses: [Expense!]! @relation(name: "ExpenseToUser", onDelete: CASCADE)
+}
+
+type Expense {
+    id: ID! @unique
+    title: String!
+    description: String!
+    amount: Float!
+    date: DateTime!
+    createdAt: DateTime!
+    owner: User! @relation(name: "ExpenseToUser", onDelete: SET_NULL)
+}

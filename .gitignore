@@ -1,0 +1,4 @@
+*/node_modules/*
+server/config/*.env
+server/prisma/docker-compose.yml
+server/src/generated/prisma.graphql

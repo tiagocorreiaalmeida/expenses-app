@@ -1,0 +1,64 @@
+type Query {
+    me: User!
+}
+
+type Mutation {
+    signUp(data: SignupUserInput!): AuthPayload!
+    signIn(email: String!, password: String!): AuthPayload!
+    updateUser(data: UpdateUserInput!): User!
+    deleteUser: User!
+    createExpense(data: createExpenseInput!): Expense!
+    updateExpense(data: updateExpenseInput!): Expense!
+    deleteExpense(id: ID!): Expense!
+}
+
+type User {
+    id: ID!
+    name: String!
+    email: String
+    password: String
+    createdAt: String!
+    expenses: [Expense!]!
+}
+
+type Expense {
+    id: ID!
+    title: String!
+    description: String!
+    amount: Float!
+    date: String!
+    createdAt: String!
+    owner: User!
+}
+
+type AuthPayload {
+    token: String!
+    user: User!
+}
+
+input SignupUserInput {
+    name: String!
+    email: String!
+    password: String!
+}
+
+input UpdateUserInput {
+    name: String
+    email: String
+    password: String
+}
+
+input createExpenseInput {
+    title: String!
+    description: String!
+    amount: Float!
+    date: String!
+    owner: ID!
+}
+
+input updateExpenseInput {
+    title: String
+    description: String
+    amount: Float
+    date: String!
+}
