@@ -1,7 +1,7 @@
 import { createError } from "apollo-errors";
 
 const InternalError = createError("Internal Error", {
-    message: "Something went wrong, please try again later"
+    message: "Something went wrong, please try again later."
 });
 
 const InvalidEmailError = createError("InvalidEmail", {
@@ -20,10 +20,35 @@ const InvalidCredentialsError = createError("InvalidCredentials", {
     message: "Invalid credentials provided."
 });
 
+const InvalidExpenseTitleError = createError("InvalidExpenseTitle", {
+    message: "Please provide a expense title with at least 2 characters."
+});
+
+const DuplicatedExpenseTitleError = createError("DuplicatedExpenseTitle", {
+    message: "You already have an expense with the same title."
+});
+
+const InvalidDateError = createError("InvalidDate", {
+    message: "Please provide a valid date."
+});
+
+const ExpenseNotFoundError = createError("ExpenseNotFound", {
+    message: "Expense not found."
+});
+
+const UserNotFoundError = createError("UserNotFound", {
+    message: "User not found."
+});
+
 export {
     InvalidEmailError,
     EmailInUseError,
     InternalError,
     InvalidPasswordError,
-    InvalidCredentialsError
+    InvalidCredentialsError,
+    InvalidExpenseTitleError,
+    DuplicatedExpenseTitleError,
+    InvalidDateError,
+    ExpenseNotFoundError,
+    UserNotFoundError
 };

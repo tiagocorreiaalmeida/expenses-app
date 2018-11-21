@@ -1,5 +1,14 @@
+#import ExpenseOrderByInput from "./generated/prisma.graphql"
+
 type Query {
     me: User!
+    expense(id: ID!): Expense!
+    expenses(
+        query: String
+        limit: Int
+        skip: Int
+        orderBy: ExpenseOrderByInput
+    ): [Expense!]!
 }
 
 type Mutation {
@@ -8,7 +17,7 @@ type Mutation {
     updateUser(data: UpdateUserInput!): User!
     deleteUser: User!
     createExpense(data: createExpenseInput!): Expense!
-    updateExpense(data: updateExpenseInput!): Expense!
+    updateExpense(id: ID!, data: updateExpenseInput!): Expense!
     deleteExpense(id: ID!): Expense!
 }
 
@@ -53,12 +62,11 @@ input createExpenseInput {
     description: String!
     amount: Float!
     date: String!
-    owner: ID!
 }
 
 input updateExpenseInput {
     title: String
     description: String
     amount: Float
-    date: String!
+    date: String
 }

@@ -12,7 +12,7 @@ type Expense {
     title: String!
     description: String!
     amount: Float!
-    date: DateTime!
+    date: String!
     createdAt: DateTime!
     owner: User! @relation(name: "ExpenseToUser", onDelete: SET_NULL)
 }

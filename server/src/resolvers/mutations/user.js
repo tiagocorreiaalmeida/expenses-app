@@ -7,8 +7,10 @@ import getUserId from "../../utils/getUserId";
 import {
     InvalidEmailError,
     EmailInUseError,
-    InvalidCredentialsError
+    InvalidCredentialsError,
+    UserNotFoundError
 } from "../../utils/errorsList";
+import { userExists } from "../../utils/validations";
 
 const signUp = async (parent, args, { prisma }, info) => {
     const { name, email, password } = args.data;
@@ -17,16 +19,13 @@ const signUp = async (parent, args, { prisma }, info) => {
     const emailInUse = await prisma.exists.User({ email });
     if (emailInUse) throw new EmailInUseError();
 
-    const user = await prisma.mutation.createUser(
-        {
-            data: {
-                name,
-                email,
-                password: hashPassword(password)
-            }
-        },
-        info
-    );
+    const user = await prisma.mutation.createUser({
+        data: {
+            name: name.trim(),
+            email,
+            password: hashPassword(password)
+        }
+    });
 
     return {
         user,
@@ -36,14 +35,13 @@ const signUp = async (parent, args, { prisma }, info) => {
 
 const signIn = async (parent, args, { prisma }, info) => {
     const { email, password } = args;
-    const user = await prisma.query.user(
-        {
-            where: {
-                email
-            }
-        },
-        info
-    );
+    const user = await prisma.query.user({
+        where: {
+            email
+        }
+    });
+
+    if (!user) throw new UserNotFoundError();
 
     if (!bcrypt.compareSync(password, user.password))
         throw new InvalidCredentialsError();
@@ -56,6 +54,8 @@ const signIn = async (parent, args, { prisma }, info) => {
 
 const updateUser = async (parent, args, { prisma, req }, info) => {
     const userId = getUserId(req);
+    await userExists(userId, prisma);
+
     const { data } = args;
 
     if (typeof data.email === "string") {
@@ -72,7 +72,9 @@ const updateUser = async (parent, args, { prisma, req }, info) => {
     if (typeof data.password === "string")
         data.password = hashPassword(data.password);
 
-    const user = await prisma.mutation.updateUser(
+    if (typeof data.name === "string") data.name = data.name.trim();
+
+    return prisma.mutation.updateUser(
         {
             data,
             where: {
@@ -81,12 +83,12 @@ const updateUser = async (parent, args, { prisma, req }, info) => {
         },
         info
     );
-
-    return user;
 };
 
 const deleteUser = async (parent, args, { prisma, req }, info) => {
     const userId = getUserId(req);
+    await userExists(userId, prisma);
+
     return prisma.mutation.deleteUser({ where: { id: userId } }, info);
 };
 
