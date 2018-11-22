@@ -8,16 +8,13 @@
         "heroku-postbuild": "babel src --out-dir dist --copy-files",
         "dev": "env-cmd ./config/dev.env nodemon src/index.js --ext js,graphql --exec babel-node",
         "get-schema": "graphql get-schema -p prisma --dotenv config/dev.env",
-        "test": "env-cmd ./config/test.env jest --watchAll"
+        "test": "env-cmd ./config/test.env mocha --require @babel/register ./tests/**.test.js"
     },
-    "jest": {
-        "globalSetup": "./tests/jest/globalSetup.js",
-        "globalTeardown": "./tests/jest/globalTeardown.js"
-    },
-    "author": "",
+    "author": "Tiago Correia",
     "license": "ISC",
     "dependencies": {
         "@babel/cli": "^7.1.2",
+        "@babel/core": "^7.1.6",
         "@babel/node": "^7.0.0",
         "@babel/polyfill": "^7.0.0",
         "@babel/preset-env": "^7.1.0",
@@ -33,14 +30,9 @@
         "validator": "^10.9.0"
     },
     "devDependencies": {
-        "@babel/core": "^7.1.2",
-        "apollo-boost": "^0.1.20",
-        "babel-core": "^7.0.0-bridge.0",
-        "babel-jest": "^23.6.0",
-        "cross-fetch": "^2.2.3",
-        "graphql": "^14.0.2",
-        "jest": "^23.6.0",
-        "nodemon": "^1.18.4",
-        "regenerator-runtime": "^0.12.1"
+        "apollo-boost": "^0.1.22",
+        "chai": "^4.2.0",
+        "mocha": "^5.2.0",
+        "nodemon": "^1.18.4"
     }
 }

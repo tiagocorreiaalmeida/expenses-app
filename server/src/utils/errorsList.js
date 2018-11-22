@@ -37,7 +37,7 @@ const ExpenseNotFoundError = createError("ExpenseNotFound", {
 });
 
 const UserNotFoundError = createError("UserNotFound", {
-    message: "User not found."
+    message: "Account not found."
 });
 
 export {
