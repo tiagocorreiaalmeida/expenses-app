@@ -38,10 +38,7 @@ const expenses = async (parent, args, { prisma, req }, info) => {
     };
     if (query) optionalArgs.where.title_contains = query;
 
-    const expenses = await prisma.query.expenses(optionalArgs, info);
-    if (!expenses) throw new ExpenseNotFoundError();
-
-    return expenses;
+    return prisma.query.expenses(optionalArgs, info);
 };
 
 export { expense, expenses };

@@ -1,4 +1,4 @@
-import { signIn, signUp } from "./operations";
+import { signUp } from "./operations";
 
 const createUser = async (client, userData) => {
     const user = await client.mutate({

@@ -1,5 +1,4 @@
 import { expect, assert } from "chai";
-import ApolloBoost, { gql } from "apollo-boost";
 
 import server from "../src/index";
 import getClient from "./utils/getClient";
@@ -11,14 +10,14 @@ import { createUser } from "./utils/user";
 const client = getClient();
 
 describe("#User", function() {
-    this.timeout(15000);
+    this.timeout(20000);
+
+    before(async () => {
+        await prisma.mutation.deleteManyExpenses();
+        await prisma.mutation.deleteManyUsers();
+    });
 
     describe("Mutation", () => {
-        before(async () => {
-            await prisma.mutation.deleteManyUsers();
-            await prisma.mutation.deleteManyExpenses();
-        });
-
         describe("signUp", () => {
             it("should refuse an invalid email", async () => {
                 const variables = {
@@ -229,7 +228,7 @@ describe("#User", function() {
                 clientWithJwt = getClient(token);
             });
 
-            it("should refuse a non authenticated user", async () => {
+            it("should should refuse a user not authenticated", async () => {
                 const variables = {
                     data: {
                         name: "new user name",
@@ -399,7 +398,7 @@ describe("#User", function() {
                 clientWithJwt = getClient(token);
             });
 
-            it("should refuse a non authenticated user", async () => {
+            it("should should refuse a user not authenticated", async () => {
                 let response;
 
                 try {
@@ -463,6 +462,10 @@ describe("#User", function() {
     });
 
     describe("Query", () => {
+        before(async () => {
+            await prisma.mutation.deleteManyUsers();
+        });
+
         describe("me", () => {
             let token, user, clientWithJwt, clientWithJwtCacheWorkAround;
             before(async () => {
@@ -474,7 +477,7 @@ describe("#User", function() {
                 clientWithJwtCacheWorkAround = await getClient(token);
             });
 
-            it("should decline a non authenticated user", async () => {
+            it("should should refuse a user not authenticated", async () => {
                 let response;
 
                 try {
