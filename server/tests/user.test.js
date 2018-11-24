@@ -6,6 +6,8 @@ import prisma from "../src/prisma";
 import usersData from "./data/user";
 import { signIn, signUp, deleteUser, updateUser, me } from "./utils/operations";
 import { createUser } from "./utils/user";
+import expensesData from "./data/expense";
+import { createExpense } from "./utils/expense";
 
 const client = getClient();
 
@@ -396,6 +398,9 @@ describe("#User", function() {
                 token = response.token;
                 user = response.user;
                 clientWithJwt = getClient(token);
+
+                await createExpense(clientWithJwt, expensesData[0]);
+                await createExpense(clientWithJwt, expensesData[1]);
             });
 
             it("should should refuse a user not authenticated", async () => {
@@ -437,6 +442,16 @@ describe("#User", function() {
                     expect(email).to.equal(user.email);
                     expect(password).to.be.null;
                 }
+            });
+
+            it("should delete all the user related expenses", async () => {
+                const userHasExpenses = await prisma.exists.Expense({
+                    owner: {
+                        id: user.id
+                    }
+                });
+
+                expect(userHasExpenses).to.be.false;
             });
 
             //account deleted but token stills valid

@@ -10,6 +10,12 @@ const expensesData = [
         description: "Second expense description",
         amount: 17.44,
         date: new Date()
+    },
+    {
+        title: "third expense",
+        description: "third expense description",
+        amount: 23.55,
+        date: new Date()
     }
 ];
 

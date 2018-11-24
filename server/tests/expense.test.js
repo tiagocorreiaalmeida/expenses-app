@@ -8,7 +8,9 @@ import expensesData from "./data/expense";
 import {
     createExpense,
     updateExpense,
-    deleteExpense
+    deleteExpense,
+    expense as getExpense,
+    expenses as getExpenses
 } from "./utils/operations";
 import { createUser } from "./utils/user";
 import { createExpense as createExpenseUtil } from "./utils/expense";
@@ -463,18 +465,281 @@ describe("#Expense", function() {
 
     describe("Query", () => {
         describe("expense", () => {
+            let token, expense, user, clientWithJwt, expenseNotOwned;
             before(async () => {
                 await prisma.mutation.deleteManyExpenses();
                 await prisma.mutation.deleteManyUsers();
+
+                const userResponse = await createUser(client, usersData[0]);
+                const userResponseTwo = await createUser(client, usersData[1]);
+
+                token = userResponse.token;
+                user = userResponse.user;
+
+                clientWithJwt = getClient(token);
+                const clientTempWithJwt = getClient(userResponseTwo.token);
+
+                expense = await createExpenseUtil(
+                    clientWithJwt,
+                    expensesData[0]
+                );
+
+                expenseNotOwned = await createExpenseUtil(
+                    clientTempWithJwt,
+                    expensesData[1]
+                );
             });
 
-            it("should should refuse a user not authenticated", () => {});
-            it("should refuse a non existent expense", () => {});
-            it("should return the requested expense data", () => {});
+            it("should should refuse a user not authenticated", async () => {
+                let response;
+                const variables = {
+                    id: expense.id
+                };
+
+                try {
+                    response = await client.query({
+                        query: getExpense,
+                        variables
+                    });
+                } catch (e) {
+                    response = e.graphQLErrors[0].message;
+                } finally {
+                    expect(response).to.be.a("string");
+                    expect(response).to.equal("You need to login first!");
+                }
+            });
+
+            it("should refuse a non existent expense", async () => {
+                let response;
+                const variables = {
+                    id: expenseNotOwned.id
+                };
+
+                try {
+                    response = await clientWithJwt.query({
+                        query: getExpense,
+                        variables
+                    });
+                } catch (e) {
+                    response = e.graphQLErrors[0].message;
+                } finally {
+                    expect(response).to.be.a("string");
+                    expect(response).to.equal("Expense not found.");
+                }
+            });
+
+            it("should return the requested expense data", async () => {
+                let response;
+                const variables = {
+                    id: expense.id
+                };
+
+                try {
+                    response = await clientWithJwt.query({
+                        query: getExpense,
+                        variables
+                    });
+                } catch (e) {
+                    response = e.graphQLErrors[0].message;
+                } finally {
+                    expect(response.data.expense).to.be.a("object");
+
+                    const { expense } = response.data;
+                    expect(expense).to.have.a.property("id");
+                    expect(expense).to.have.a.property("title");
+                    expect(expense).to.have.a.property("description");
+                    expect(expense).to.have.a.property("amount");
+                    expect(expense).to.have.a.property("date");
+                    expect(expense).to.have.property("owner");
+
+                    const { title, description, amount, date, owner } = expense;
+
+                    expect(title).to.equal(expensesData[0].title);
+                    expect(description).to.equal(expensesData[0].description);
+                    expect(amount).to.equal(expensesData[0].amount);
+                    assert.deepEqual(new Date(date), expensesData[0].date);
+                    expect(owner).to.be.a("object");
+                    expect(owner).to.have.a.property("id");
+                    expect(owner.id).to.equal(user.id);
+                }
+            });
         });
         describe("expenses", () => {
-            it("should should refuse a user not authenticated", () => {});
-            //tests for skip limits filters
+            let token,
+                expense,
+                expenseTwo,
+                user,
+                clientWithJwt,
+                expenseNotOwned;
+            before(async () => {
+                await prisma.mutation.deleteManyExpenses();
+                await prisma.mutation.deleteManyUsers();
+
+                const userResponse = await createUser(client, usersData[0]);
+                const userResponseTwo = await createUser(client, usersData[1]);
+
+                token = userResponse.token;
+                user = userResponse.user;
+
+                clientWithJwt = getClient(token);
+                const clientTempWithJwt = getClient(userResponseTwo.token);
+
+                expense = await createExpenseUtil(
+                    clientWithJwt,
+                    expensesData[0]
+                );
+
+                expenseTwo = await createExpenseUtil(
+                    clientWithJwt,
+                    expensesData[2]
+                );
+
+                expenseNotOwned = await createExpenseUtil(
+                    clientTempWithJwt,
+                    expensesData[1]
+                );
+            });
+
+            it("should should refuse a user not authenticated", async () => {
+                let response;
+                const variables = {};
+
+                try {
+                    response = await client.query({
+                        query: getExpenses,
+                        variables
+                    });
+                } catch (e) {
+                    response = e.graphQLErrors[0].message;
+                } finally {
+                    expect(response).to.be.a("string");
+                    expect(response).to.equal("You need to login first!");
+                }
+            });
+
+            it("should return the user expenses", async () => {
+                let response;
+                const variables = {};
+
+                try {
+                    response = await clientWithJwt.query({
+                        query: getExpenses,
+                        variables
+                    });
+                } catch (e) {
+                    response = e.graphQLErrors[0].message;
+                } finally {
+                    expect(response.data.expenses).to.be.an("array");
+
+                    const { expenses } = response.data;
+                    expect(expenses.length).to.equal(2);
+
+                    expect(expenses[0]).to.have.a.property("id");
+                    expect(expenses[0].id).to.equal(expense.id);
+
+                    expect(expenses[1]).to.have.a.property("id");
+                    expect(expenses[1].id).to.equal(expenseTwo.id);
+                }
+            });
+
+            it("should return the user expenses using filter", async () => {
+                let response;
+                const variables = {
+                    query: expense.title
+                };
+
+                try {
+                    response = await clientWithJwt.query({
+                        query: getExpenses,
+                        variables
+                    });
+                } catch (e) {
+                    response = e.graphQLErrors[0].message;
+                } finally {
+                    expect(response.data.expenses).to.be.an("array");
+
+                    const { expenses } = response.data;
+
+                    expect(expenses.length).to.equal(1);
+                    expect(expenses[0]).to.have.a.property("id");
+                    expect(expenses[0].id).to.equal(expense.id);
+                }
+            });
+
+            it("should return the user expenses using skip", async () => {
+                let response;
+                const variables = {
+                    skip: 1
+                };
+
+                try {
+                    response = await clientWithJwt.query({
+                        query: getExpenses,
+                        variables
+                    });
+                } catch (e) {
+                    response = e.graphQLErrors[0].message;
+                } finally {
+                    expect(response.data.expenses).to.be.an("array");
+
+                    const { expenses } = response.data;
+
+                    expect(expenses.length).to.equal(1);
+                    expect(expenses[0]).to.have.a.property("id");
+                    expect(expenses[0].id).to.equal(expenseTwo.id);
+                }
+            });
+
+            it("should return the user expenses using limit", async () => {
+                let response;
+                const variables = {
+                    limit: 1
+                };
+
+                try {
+                    response = await clientWithJwt.query({
+                        query: getExpenses,
+                        variables
+                    });
+                } catch (e) {
+                    response = e.graphQLErrors[0].message;
+                } finally {
+                    expect(response.data.expenses).to.be.an("array");
+
+                    const { expenses } = response.data;
+
+                    expect(expenses.length).to.equal(1);
+                    expect(expenses[0]).to.have.a.property("id");
+                    expect(expenses[0].id).to.equal(expense.id);
+                }
+            });
+
+            it("should return the user expenses using orderBy", async () => {
+                let response;
+                const variables = {
+                    orderBy: "amount_DESC"
+                };
+
+                try {
+                    response = await clientWithJwt.query({
+                        query: getExpenses,
+                        variables
+                    });
+                } catch (e) {
+                    response = e.graphQLErrors[0].message;
+                } finally {
+                    expect(response.data.expenses).to.be.an("array");
+
+                    const { expenses } = response.data;
+
+                    expect(expenses.length).to.equal(2);
+                    expect(expenses[0]).to.have.a.property("id");
+                    expect(expenses[0].id).to.equal(expenseTwo.id);
+
+                    expect(expenses[1]).to.have.a.property("id");
+                    expect(expenses[1].id).to.equal(expense.id);
+                }
+            });
         });
     });
 });

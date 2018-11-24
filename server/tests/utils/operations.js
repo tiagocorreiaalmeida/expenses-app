@@ -110,6 +110,41 @@ const deleteExpense = gql`
     }
 `;
 
+const expense = gql`
+    query($id: ID!) {
+        expense(id: $id) {
+            id
+            title
+            description
+            date
+            amount
+            owner {
+                id
+            }
+        }
+    }
+`;
+
+const expenses = gql`
+    query(
+        $query: String
+        $limit: Int
+        $skip: Int
+        $orderBy: ExpenseOrderByInput
+    ) {
+        expenses(query: $query, limit: $limit, skip: $skip, orderBy: $orderBy) {
+            id
+            title
+            description
+            date
+            amount
+            owner {
+                id
+            }
+        }
+    }
+`;
+
 export {
     signUp,
     signIn,
@@ -118,5 +153,7 @@ export {
     me,
     createExpense,
     updateExpense,
-    deleteExpense
+    deleteExpense,
+    expense,
+    expenses
 };
